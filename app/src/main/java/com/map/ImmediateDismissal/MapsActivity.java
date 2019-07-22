@@ -7,38 +7,32 @@ import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.material.snackbar.Snackbar;
 
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        GoogleMap.OnMarkerDragListener,
-        GoogleMap.OnMapLongClickListener,
-        GoogleMap.OnMarkerClickListener,
-        View.OnClickListener {
+        LocationListener {
 
     SupportMapFragment mapFragment;
     private static final String TAG = "MapsActivity";
@@ -50,25 +44,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int POLYGON_STROKE_WIDTH_PX = 8;
     private static Boolean SnackBarShown = false;
     Snackbar snackbar;
-    private final Point[] points = { new Point(42.353486, -71.105835),
-                        new Point(42.355092, -71.106543),
-                        new Point(42.360218, -71.096121),
-                        new Point(42.363322, -71.101242),
-                        new Point(42.363896, -71.100635),
-                        new Point(42.363359, -71.093570),
-                        new Point(42.364502, -71.092909),
-                        new Point(42.364377, -71.091079),
-                        new Point(42.363263, -71.091265),
-                        new Point(42.362793, -71.083611),
-                        new Point(42.360650, -71.082492),
-                        new Point(42.354794, -71.100255),
-                        new Point(42.353511, -71.105193)};
 
+    // The polygon that defines the boundaries and tells you when you exit them
+    private final Point[] polygon = { new Point(42.353486, -71.105835),
+            new Point(42.355092, -71.106543),
+            new Point(42.360218, -71.096121),
+            new Point(42.363322, -71.101242),
+            new Point(42.363896, -71.100635),
+            new Point(42.363359, -71.093570),
+            new Point(42.364502, -71.092909),
+            new Point(42.364377, -71.091079),
+            new Point(42.363263, -71.091265),
+            new Point(42.362793, -71.083611),
+            new Point(42.360650, -71.082492),
+            new Point(42.354794, -71.100255),
+            new Point(42.353511, -71.105193)};
+
+    // The polygon that tells you when you're close but not exactly outside of the boundaries
+    private Point[] smallerPolygon;
+
+    // Asks user for location permission
     private void makeLocationPermissionRequest() {
         ActivityCompat.requestPermissions(this,
                 new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
     }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,19 +99,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 makeLocationPermissionRequest();
             } else {
                 mMap.setMyLocationEnabled(true);
-                showPolygon();
-                moveMap();
+                getCurrentLocation();
             }
         } else {
             mMap.setMyLocationEnabled(true);
-            showPolygon();
-            moveMap();
+            getCurrentLocation();
         }
 
 
 
     }
 
+    // Displays boundaries
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void showPolygon() {
 
@@ -140,7 +138,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    //Getting current location
+    //Getting current location, moves map to the current location, and checks to make sure you're in the boundaries
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void getCurrentLocation() {
         mMap.clear();
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -155,25 +154,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //moving the map to location
             moveMap();
             checkBoundaries();
+            showPolygon();
         }
 
 
     }
 
+    // Tells you if a point is in a polygon
     // Credit for this goes to https://stackoverflow.com/a/8721483 and  http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
     public Boolean inPolygon(Point test) {
         int i;
         int j;
         boolean result = false;
-        for (i = 0, j = points.length - 1; i < points.length; j = i++) {
-            if ((points[i].y > test.y) != (points[j].y > test.y) &&
-                    (test.x < (points[j].x - points[i].x) * (test.y - points[i].y) / (points[j].y-points[i].y) + points[i].x)) {
+        for (i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+            if ((polygon[i].y > test.y) != (polygon[j].y > test.y) &&
+                    (test.x < (polygon[j].x - polygon[i].x) * (test.y - polygon[i].y) / (polygon[j].y-polygon[i].y) + polygon[i].x)) {
                 result = !result;
             }
         }
         return result;
     }
 
+    // Tells you if you're in the boundaries or not
     private void checkBoundaries()
     {
         Boolean inBoundaries = inPolygon(new Point(latitude, longitude));
@@ -194,6 +196,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    // Moves the map to whatever coordinates are currently stored in longitude and latitude
     private void moveMap() {
         /**
          * Creating the latlng object to store lat, long coordinates
@@ -207,16 +210,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    @Override
-    public void onClick(View view) {
-        Log.v(TAG, "view click event");
-    }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         getCurrentLocation();
-        showPolygon();
 
     }
 
@@ -231,32 +229,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    public void onMapLongClick(LatLng latLng) {
-        // mMap.clear();
-        mMap.addMarker(new MarkerOptions().position(latLng).draggable(true));
-    }
-
-    @Override
-    public void onMarkerDragStart(Marker marker) {
-        Toast.makeText(MapsActivity.this, "onMarkerDragStart", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onMarkerDrag(Marker marker) {
-        Toast.makeText(MapsActivity.this, "onMarkerDrag", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onMarkerDragEnd(Marker marker) {
-        // getting the Co-ordinates
-        latitude = marker.getPosition().latitude;
-        longitude = marker.getPosition().longitude;
-
-        //move to current position
-        moveMap();
-    }
-
-    @Override
     protected void onStart() {
         googleApiClient.connect();
         super.onStart();
@@ -266,13 +238,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onStop() {
         googleApiClient.disconnect();
         super.onStop();
-    }
-
-
-    @Override
-    public boolean onMarkerClick(Marker marker) {
-        Toast.makeText(MapsActivity.this, "onMarkerClick", Toast.LENGTH_SHORT).show();
-        return true;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -285,18 +250,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                         return;
                     }
-                    getCurrentLocation();
                     mMap.setMyLocationEnabled(true);
-                    showPolygon();
-
+                    getCurrentLocation();
 
                 } else {
+                    makeLocationPermissionRequest();
                 }
                 return;
             }
         }
     }
 
+    @Override
+    public void onLocationChanged(Location location){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            getCurrentLocation();
+        }
+        else{
+            // Tell the user that they need a better phone
+        }
+    }
+
 
 }
-
