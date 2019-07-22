@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Immediate Dismissal</string>
+    <string name="title_activity_maps">Immediate Dismissal</string>
+    <string name = 'google_map_api_key'>AIzaSyCqyUUgBMlGxa1AhSrC7WuQWbqZNOdlMEw</string>
+</resources>
