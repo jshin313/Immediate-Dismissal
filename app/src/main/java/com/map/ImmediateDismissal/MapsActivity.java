@@ -49,8 +49,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private final Point[] polygon = { new Point(42.353486, -71.105835),
             new Point(42.355092, -71.106543),
             new Point(42.360218, -71.096121),
-            new Point(42.363322, -71.101242),
-            new Point(42.363896, -71.100635),
+            new Point( 42.364546, -71.104289),
+            new Point( 42.365501, -71.102763),
             new Point(42.363359, -71.093570),
             new Point(42.364502, -71.092909),
             new Point(42.364377, -71.091079),
@@ -120,8 +120,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         new LatLng(42.353486, -71.105835),
                         new LatLng(42.355092, -71.106543),
                         new LatLng(42.360218, -71.096121),
-                        new LatLng(42.363322, -71.101242),
-                        new LatLng(42.363896, -71.100635),
+                        new LatLng(42.364546, -71.104289),
+                        new LatLng(42.365501, -71.102763),
                         new LatLng(42.363359, -71.093570),
                         new LatLng(42.364502, -71.092909),
                         new LatLng(42.364377, -71.091079),
@@ -182,16 +182,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         if (!inBoundaries)
         {
-            snackbar = Snackbar.make(mapFragment.getView(), "You are outside the boundaries", Snackbar.LENGTH_INDEFINITE);
+            if (SnackBarShown)
+                snackbar.dismiss();
+            snackbar = Snackbar.make(mapFragment.getView(), "You are outside the boundaries.", Snackbar.LENGTH_INDEFINITE);
             snackbar.show();
             SnackBarShown = true;
         }
         else
         {
-            if (SnackBarShown) {
+            if (SnackBarShown)
                 snackbar.dismiss();
-                SnackBarShown = false;
-            }
+            snackbar = Snackbar.make(mapFragment.getView(), "Congrats! You are now within bounds and safe from immediate dismissal.", Snackbar.LENGTH_INDEFINITE);
+            snackbar.show();
+            SnackBarShown = true;
         }
 
     }
