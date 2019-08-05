@@ -5,7 +5,13 @@ Still very much a work in progress (This is my first android app).
 ## Description
 Beaver Works Summer Institute (BWSI) is a summer program that offers several hands-on project based courses. Many of the courses are pretty interesting and actually provide some cool material to learn. BWSI also allows students to stay on campus as residential students; however, these students are restricted to only a certain area on and around the campus. Access to other areas is prohibited and leaving the boundaries is grounds for "immediate dismissal" and may lead to the termination of the student from the program. Unfortunately, the map provided with the boundaries to the students is a very pixelated, low quality image. This Android app aims to solve this problem by giving students access to something that can provide them with a much better interactive map with the boundaries and their current location (using GPS). The app utilizes the Google Map Android API (since it's free) and Java.
 
+Install the app at https://play.google.com/store/apps/details?id=com.map.ImmediateDismissal&hl=en_US
+
+## Some pictures of the app
+
+![alt text](https://raw.githubusercontent.com/jshin313/Immediate-Dismissal/master/Screenshot1.png)
+![alt text](https://raw.githubusercontent.com/jshin313/Immediate-Dismissal/master/Screenshot2.png)
+
 ## Disclaimer: 
 This app is not affiliated with or endorsed by MIT, Lincoln Laboratories, or Beaver Works. The author is not responsible or liable for any damages caused by mistakes in the app or maps. I might be several feet (or more) off with the boundaries.
 
-Install thte app at https://play.google.com/store/apps/details?id=com.map.ImmediateDismissal&hl=en_US
